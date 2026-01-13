@@ -75,15 +75,16 @@ async function runOnSimulator(
     const flag = project.isWorkspace ? '-workspace' : '-project';
     const useXcbeautify = xcbeautifyAvailable ?? false;
     
-    // Build base xcodebuild command
-    const xcodebuildBase = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration Debug -destination "id=${simulatorUdid}"`;
+    // Build base xcodebuild command with platform specified for xcode-build-server
+    const destination = `platform=iOS Simulator,id=${simulatorUdid}`;
+    const xcodebuildBase = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration Debug -destination '${destination}' -resultBundlePath .bundle`;
     
     // Build command with optional xcbeautify
     let buildPart: string;
     if (useXcbeautify) {
-        buildPart = `set -o pipefail && ${xcodebuildBase} build 2>&1 | xcbeautify`;
+        buildPart = `set -o pipefail && rm -rf .bundle && ${xcodebuildBase} build 2>&1 | xcbeautify`;
     } else {
-        buildPart = `${xcodebuildBase} build`;
+        buildPart = `rm -rf .bundle && ${xcodebuildBase} build`;
     }
     
     // Command to get app path from build settings
@@ -127,15 +128,16 @@ async function runOnDevice(
     const flag = project.isWorkspace ? '-workspace' : '-project';
     const useXcbeautify = xcbeautifyAvailable ?? false;
     
-    // Build base xcodebuild command
-    const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration Debug -destination "id=${deviceUdid}" build`;
+    // Build base xcodebuild command with platform specified for xcode-build-server
+    const destination = `platform=iOS,id=${deviceUdid}`;
+    const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration Debug -destination '${destination}' -resultBundlePath .bundle build`;
     
     // Build command with optional xcbeautify
     let buildCommand: string;
     if (useXcbeautify) {
-        buildCommand = `set -o pipefail && ${baseCommand} 2>&1 | xcbeautify`;
+        buildCommand = `set -o pipefail && rm -rf .bundle && ${baseCommand} 2>&1 | xcbeautify`;
     } else {
-        buildCommand = baseCommand;
+        buildCommand = `rm -rf .bundle && ${baseCommand}`;
     }
 
     let terminal = vscode.window.terminals.find(t => t.name === 'iCode Build');

@@ -33,6 +33,10 @@
       {
         "command": "icode.run",
         "title": "iCode: Build & Run"
+      },
+      {
+        "command": "icode.configureIndex",
+        "title": "iCode: Configure Swift Index (SourceKit-LSP)"
       }
     ]
   },
@@ -43,7 +47,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.0.7",
-    "@types/vscode": "^1.108.1",
+    "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^3.7.1",
     "typescript": "^5.9.3"
   },

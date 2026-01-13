@@ -3,6 +3,7 @@ import * as selectScheme from './selectScheme';
 import * as selectSimulator from './selectSimulator';
 import * as build from './build';
 import * as run from './run';
+import * as configureIndex from './configureIndex';
 
 /**
  * Interface for a command module.
@@ -22,6 +23,7 @@ const commands: CommandModule[] = [
     selectSimulator,
     build,
     run,
+    configureIndex,
 ];
 
 /**

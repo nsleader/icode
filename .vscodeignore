@@ -1,0 +1,21 @@
+# Source files (compiled JS is in out/)
+src/**
+*.ts
+tsconfig.json
+
+# Development files
+.vscode/**
+.cursor/**
+.git/**
+.gitignore
+
+# Node modules (extension doesn't need runtime dependencies)
+node_modules/**
+
+# Build artifacts
+*.vsix
+
+# Misc
+*.md
+*.map
+.DS_Store

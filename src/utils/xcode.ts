@@ -88,16 +88,20 @@ export async function getSchemes(project: XcodeProject): Promise<XcodeScheme[]> 
 
 /**
  * Build the Xcode project.
+ * @param targetType - 'simulator' or 'device' to determine correct platform
  */
 export function getBuildCommand(
     project: XcodeProject,
     scheme: string,
-    simulatorId: string,
+    targetId: string,
+    targetType: 'simulator' | 'device',
     configuration: string = 'Debug',
     useXcbeautify: boolean = false
 ): string {
     const flag = project.isWorkspace ? '-workspace' : '-project';
-    const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination "id=${simulatorId}" build`;
+    const platform = targetType === 'simulator' ? 'iOS Simulator' : 'iOS';
+    const destination = `platform=${platform},id=${targetId}`;
+    const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' -resultBundlePath .bundle build`;
     
     if (useXcbeautify) {
         return `set -o pipefail && ${baseCommand} 2>&1 | xcbeautify`;
@@ -107,16 +111,20 @@ export function getBuildCommand(
 
 /**
  * Get the path to the built app bundle.
+ * @param targetType - 'simulator' or 'device' to determine correct platform
  */
 export async function getAppBundlePath(
     project: XcodeProject,
     scheme: string,
-    simulatorId: string,
+    targetId: string,
+    targetType: 'simulator' | 'device',
     configuration: string = 'Debug'
 ): Promise<string | undefined> {
     const flag = project.isWorkspace ? '-workspace' : '-project';
-    // Include destination to get correct build settings for simulator
-    const command = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination "id=${simulatorId}" -showBuildSettings`;
+    const platform = targetType === 'simulator' ? 'iOS Simulator' : 'iOS';
+    const destination = `platform=${platform},id=${targetId}`;
+    // Include destination to get correct build settings
+    const command = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' -showBuildSettings`;
     
     try {
         const output = await runCommand(command);

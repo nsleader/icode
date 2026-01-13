@@ -1,11 +1,14 @@
 import * as vscode from 'vscode';
 import { getBuildCommand, isXcbeautifyInstalled } from '../utils/xcode';
 import { ProjectState } from '../state/projectState';
+import { isConfigured } from './configureIndex';
 
 export const COMMAND_ID = 'icode.build';
 
 // Cache xcbeautify availability
 let xcbeautifyAvailable: boolean | undefined;
+// Track if we've already suggested configuring index
+let indexSuggestionShown = false;
 
 async function checkXcbeautify(): Promise<boolean> {
     if (xcbeautifyAvailable === undefined) {
@@ -78,6 +81,7 @@ export async function execute(): Promise<boolean> {
         state.project,
         state.scheme,
         state.target.udid,
+        state.target.type,
         'Debug',
         xcbeautifyAvailable ?? false
     );
@@ -92,8 +96,26 @@ export async function execute(): Promise<boolean> {
     }
 
     terminal.show();
-    terminal.sendText(buildCommand);
+    // Remove old result bundle before building (xcodebuild fails if it exists)
+    terminal.sendText(`rm -rf .bundle && ${buildCommand}`);
 
     vscode.window.showInformationMessage(`Building ${state.scheme}...`);
+
+    // Suggest configuring index if not already configured
+    if (!indexSuggestionShown && !isConfigured()) {
+        indexSuggestionShown = true;
+        // Show after a delay to not interrupt the build notification
+        setTimeout(async () => {
+            const action = await vscode.window.showInformationMessage(
+                'Tip: Configure Swift indexing for autocomplete and go-to-definition support.',
+                'Configure Now',
+                'Later'
+            );
+            if (action === 'Configure Now') {
+                await vscode.commands.executeCommand('icode.configureIndex');
+            }
+        }, 3000);
+    }
+
     return true;
 }
