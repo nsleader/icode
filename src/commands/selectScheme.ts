@@ -92,4 +92,10 @@ export async function execute(): Promise<void> {
     state.setScheme(selectedScheme.schemeName);
 
     vscode.window.showInformationMessage(`Selected: ${selectedProject.name} → ${selectedScheme.schemeName}`);
+
+    // Chain: prompt to select simulator/device
+    await vscode.commands.executeCommand('icode.selectSimulator');
+    
+    // Chain: prompt to select configuration
+    await vscode.commands.executeCommand('icode.selectConfiguration');
 }

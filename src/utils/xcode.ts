@@ -87,6 +87,35 @@ export async function getSchemes(project: XcodeProject): Promise<XcodeScheme[]> 
 }
 
 /**
+ * Get list of build configurations for an Xcode project/workspace.
+ * Returns configurations like 'Debug', 'Release', or custom ones.
+ */
+export async function getConfigurations(project: XcodeProject): Promise<string[]> {
+    const flag = project.isWorkspace ? '-workspace' : '-project';
+    const command = `xcodebuild -list ${flag} "${project.path}" -json`;
+    
+    try {
+        const output = await runCommand(command);
+        const data = JSON.parse(output);
+        
+        // Configurations are in project.configurations (not in workspace)
+        // For workspaces, we need to look at the underlying project
+        const configurations = data.project?.configurations || data.workspace?.configurations || [];
+        
+        // If no configurations found, return defaults
+        if (configurations.length === 0) {
+            return ['Debug', 'Release'];
+        }
+        
+        return configurations;
+    } catch (error) {
+        console.error('Failed to get configurations:', error);
+        // Return defaults on error
+        return ['Debug', 'Release'];
+    }
+}
+
+/**
  * Build the Xcode project.
  * @param targetType - 'simulator' or 'device' to determine correct platform
  */

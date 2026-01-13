@@ -82,7 +82,7 @@ export async function execute(): Promise<boolean> {
         state.scheme,
         state.target.udid,
         state.target.type,
-        'Debug',
+        state.configuration,
         xcbeautifyAvailable ?? false
     );
 

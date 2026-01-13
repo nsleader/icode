@@ -12,8 +12,8 @@
     "Debuggers"
   ],
   "activationEvents": [
-    "workspaceContains:**/*.xcodeproj",
-    "workspaceContains:**/*.xcworkspace"
+    "workspaceContains:**/*.xcodeproj/project.pbxproj",
+    "workspaceContains:**/*.xcworkspace/contents.xcworkspacedata"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -25,6 +25,10 @@
       {
         "command": "icode.selectSimulator",
         "title": "iCode: Select Simulator/Device"
+      },
+      {
+        "command": "icode.selectConfiguration",
+        "title": "iCode: Select Configuration (Debug/Release)"
       },
       {
         "command": "icode.build",

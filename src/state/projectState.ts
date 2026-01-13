@@ -13,6 +13,11 @@ export interface BuildTarget {
 }
 
 /**
+ * Build configuration name (e.g., 'Debug', 'Release', or custom configurations).
+ */
+export type BuildConfiguration = string;
+
+/**
  * Current project state stored in workspace context.
  */
 interface StoredState {
@@ -20,6 +25,7 @@ interface StoredState {
     schemeName?: string;
     targetUdid?: string;
     targetType?: 'simulator' | 'device';
+    configuration?: BuildConfiguration;
 }
 
 /**
@@ -34,15 +40,18 @@ export class ProjectState {
     private _project?: XcodeProject;
     private _scheme?: string;
     private _target?: BuildTarget;
+    private _configuration: string = 'Debug';
     
     // Event emitters for state changes
     private _onDidChangeScheme = new vscode.EventEmitter<string | undefined>();
     private _onDidChangeTarget = new vscode.EventEmitter<BuildTarget | undefined>();
     private _onDidChangeProject = new vscode.EventEmitter<XcodeProject | undefined>();
+    private _onDidChangeConfiguration = new vscode.EventEmitter<string>();
     
     readonly onDidChangeScheme = this._onDidChangeScheme.event;
     readonly onDidChangeTarget = this._onDidChangeTarget.event;
     readonly onDidChangeProject = this._onDidChangeProject.event;
+    readonly onDidChangeConfiguration = this._onDidChangeConfiguration.event;
 
     private constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -76,6 +85,10 @@ export class ProjectState {
         return this._target;
     }
 
+    get configuration(): string {
+        return this._configuration;
+    }
+
     // Setters with persistence
     setProject(project: XcodeProject | undefined): void {
         this._project = project;
@@ -93,6 +106,12 @@ export class ProjectState {
         this._target = target;
         this.saveState();
         this._onDidChangeTarget.fire(target);
+    }
+
+    setConfiguration(configuration: string): void {
+        this._configuration = configuration;
+        this.saveState();
+        this._onDidChangeConfiguration.fire(configuration);
     }
 
     setTargetFromSimulator(simulator: Simulator): void {
@@ -132,6 +151,7 @@ export class ProjectState {
                     name: 'Unknown', // Will be updated when simulators are loaded
                 };
             }
+            this._configuration = stored.configuration || 'Debug';
         }
     }
 
@@ -141,6 +161,7 @@ export class ProjectState {
             schemeName: this._scheme,
             targetUdid: this._target?.udid,
             targetType: this._target?.type,
+            configuration: this._configuration,
         };
         this.context.workspaceState.update('icode.state', state);
     }
@@ -149,5 +170,6 @@ export class ProjectState {
         this._onDidChangeScheme.dispose();
         this._onDidChangeTarget.dispose();
         this._onDidChangeProject.dispose();
+        this._onDidChangeConfiguration.dispose();
     }
 }

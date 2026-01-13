@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as selectScheme from './selectScheme';
 import * as selectSimulator from './selectSimulator';
+import * as selectConfiguration from './selectConfiguration';
 import * as build from './build';
 import * as run from './run';
 import * as configureIndex from './configureIndex';
@@ -21,6 +22,7 @@ interface CommandModule {
 const commands: CommandModule[] = [
     selectScheme,
     selectSimulator,
+    selectConfiguration,
     build,
     run,
     configureIndex,

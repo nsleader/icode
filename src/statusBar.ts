@@ -7,6 +7,7 @@ import { ProjectState } from './state/projectState';
 export class StatusBarManager {
     private schemeItem: vscode.StatusBarItem;
     private targetItem: vscode.StatusBarItem;
+    private configItem: vscode.StatusBarItem;
     private buildItem: vscode.StatusBarItem;
     private runItem: vscode.StatusBarItem;
 
@@ -27,10 +28,18 @@ export class StatusBarManager {
         this.targetItem.command = 'icode.selectSimulator';
         this.targetItem.tooltip = 'Select Simulator/Device';
 
+        // Configuration selector
+        this.configItem = vscode.window.createStatusBarItem(
+            vscode.StatusBarAlignment.Left,
+            98
+        );
+        this.configItem.command = 'icode.selectConfiguration';
+        this.configItem.tooltip = 'Select Build Configuration';
+
         // Build button
         this.buildItem = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Left,
-            98
+            97
         );
         this.buildItem.command = 'icode.build';
         this.buildItem.text = '$(tools) Build';
@@ -39,7 +48,7 @@ export class StatusBarManager {
         // Run button
         this.runItem = vscode.window.createStatusBarItem(
             vscode.StatusBarAlignment.Left,
-            97
+            96
         );
         this.runItem.command = 'icode.run';
         this.runItem.text = '$(play) Run';
@@ -48,6 +57,7 @@ export class StatusBarManager {
         // Initial update
         this.updateScheme();
         this.updateTarget();
+        this.updateConfiguration();
     }
 
     /**
@@ -60,12 +70,14 @@ export class StatusBarManager {
         context.subscriptions.push(
             state.onDidChangeScheme(() => this.updateScheme()),
             state.onDidChangeTarget(() => this.updateTarget()),
-            state.onDidChangeProject(() => this.updateScheme())
+            state.onDidChangeProject(() => this.updateScheme()),
+            state.onDidChangeConfiguration(() => this.updateConfiguration())
         );
 
         // Show all items
         this.schemeItem.show();
         this.targetItem.show();
+        this.configItem.show();
         this.buildItem.show();
         this.runItem.show();
 
@@ -73,6 +85,7 @@ export class StatusBarManager {
         context.subscriptions.push(
             this.schemeItem,
             this.targetItem,
+            this.configItem,
             this.buildItem,
             this.runItem
         );
@@ -100,9 +113,16 @@ export class StatusBarManager {
         }
     }
 
+    private updateConfiguration(): void {
+        const state = ProjectState.getInstance();
+        const icon = state.configuration === 'Release' ? 'package' : 'bug';
+        this.configItem.text = `$(${icon}) ${state.configuration}`;
+    }
+
     dispose(): void {
         this.schemeItem.dispose();
         this.targetItem.dispose();
+        this.configItem.dispose();
         this.buildItem.dispose();
         this.runItem.dispose();
     }
