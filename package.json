@@ -2,7 +2,7 @@
   "name": "icode",
   "displayName": "iCode - iOS Development Tools",
   "description": "iOS development tools for VS Code/Cursor: build, run, and manage iOS projects",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "nsleader",
   "engines": {
     "vscode": "^1.85.0"
@@ -41,8 +41,32 @@
       {
         "command": "icode.configureIndex",
         "title": "iCode: Configure Swift Index (SourceKit-LSP)"
+      },
+      {
+        "command": "icode.resolvePackages",
+        "title": "iCode: Resolve SPM Dependencies"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "iCode",
+      "properties": {
+        "icode.build.skipMacroValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Skip Swift macro validation for faster builds (Xcode 15+)"
+        },
+        "icode.build.parallelizeTargets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Build independent targets in parallel"
+        },
+        "icode.build.disableAutoPackageResolution": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disable automatic SPM package resolution (use 'Resolve SPM Dependencies' command manually)"
+        }
+      }
+    }
   },
   "scripts": {
     "compile": "tsc -p ./",

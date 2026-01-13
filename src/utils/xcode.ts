@@ -116,8 +116,31 @@ export async function getConfigurations(project: XcodeProject): Promise<string[]
 }
 
 /**
+ * Build optimization options.
+ */
+export interface BuildOptions {
+    useXcbeautify?: boolean;
+    skipMacroValidation?: boolean;
+    parallelizeTargets?: boolean;
+    disableAutoPackageResolution?: boolean;
+}
+
+/**
+ * Get build optimization flags from VS Code settings.
+ */
+export function getBuildOptions(): BuildOptions {
+    const config = vscode.workspace.getConfiguration('icode.build');
+    return {
+        skipMacroValidation: config.get<boolean>('skipMacroValidation', true),
+        parallelizeTargets: config.get<boolean>('parallelizeTargets', true),
+        disableAutoPackageResolution: config.get<boolean>('disableAutoPackageResolution', false),
+    };
+}
+
+/**
  * Build the Xcode project.
  * @param targetType - 'simulator' or 'device' to determine correct platform
+ * @param options - Build optimization options
  */
 export function getBuildCommand(
     project: XcodeProject,
@@ -125,12 +148,31 @@ export function getBuildCommand(
     targetId: string,
     targetType: 'simulator' | 'device',
     configuration: string = 'Debug',
-    useXcbeautify: boolean = false
+    useXcbeautify: boolean = false,
+    options?: BuildOptions
 ): string {
     const flag = project.isWorkspace ? '-workspace' : '-project';
     const platform = targetType === 'simulator' ? 'iOS Simulator' : 'iOS';
     const destination = `platform=${platform},id=${targetId}`;
-    const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' -skipPackageUpdates -resultBundlePath .bundle build`;
+    
+    // Get options from settings if not provided
+    const opts = options ?? getBuildOptions();
+    
+    // Build optimization flags
+    const optFlags: string[] = ['-skipPackageUpdates'];
+    
+    if (opts.skipMacroValidation) {
+        optFlags.push('-skipMacroValidation');
+    }
+    if (opts.parallelizeTargets) {
+        optFlags.push('-parallelizeTargets');
+    }
+    if (opts.disableAutoPackageResolution) {
+        optFlags.push('-disableAutomaticPackageResolution');
+    }
+    
+    const optFlagsStr = optFlags.join(' ');
+    const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' ${optFlagsStr} -resultBundlePath .bundle build`;
     
     if (useXcbeautify) {
         return `set -o pipefail && ${baseCommand} 2>&1 | xcbeautify`;

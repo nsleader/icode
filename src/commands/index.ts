@@ -5,6 +5,7 @@ import * as selectConfiguration from './selectConfiguration';
 import * as build from './build';
 import * as run from './run';
 import * as configureIndex from './configureIndex';
+import * as resolvePackages from './resolvePackages';
 
 /**
  * Interface for a command module.
@@ -26,6 +27,7 @@ const commands: CommandModule[] = [
     build,
     run,
     configureIndex,
+    resolvePackages,
 ];
 
 /**

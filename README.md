@@ -145,8 +145,21 @@ Cmd+Shift+P → iCode: Configure Swift Index (SourceKit-LSP)
 | `iCode: Build Project` | Сборка проекта |
 | `iCode: Build & Run` | Сборка и запуск приложения |
 | `iCode: Configure Swift Index` | Настройка индексации для SourceKit-LSP |
+| `iCode: Resolve SPM Dependencies` | Предварительный резолв SPM-зависимостей |
 
 ## ⚙️ Настройки и параметры
+
+### Оптимизация сборки
+
+Настройки доступны в **Settings → Extensions → iCode**:
+
+| Настройка | По умолчанию | Описание |
+|-----------|--------------|----------|
+| `icode.build.skipMacroValidation` | `true` | Пропуск валидации Swift макросов (Xcode 15+) |
+| `icode.build.parallelizeTargets` | `true` | Параллельная сборка независимых таргетов |
+| `icode.build.disableAutoPackageResolution` | `false` | Отключить автоматический резолв SPM-зависимостей |
+
+> 💡 **Совет по SPM:** Если сборка долго резолвит зависимости, выполните команду `iCode: Resolve SPM Dependencies` один раз, затем включите `disableAutoPackageResolution`. Это значительно ускорит повторные сборки.
 
 ### Автоактивация
 
@@ -262,7 +275,8 @@ icode/
 │   │   ├── selectConfiguration.ts
 │   │   ├── build.ts
 │   │   ├── run.ts
-│   │   └── configureIndex.ts
+│   │   ├── configureIndex.ts
+│   │   └── resolvePackages.ts
 │   ├── state/
 │   │   └── projectState.ts # Управление состоянием
 │   ├── utils/
@@ -280,7 +294,6 @@ icode/
 ## 🤝 Обратная связь и поддержка
 
 - **GitHub Issues:** [github.com/nsleader/icode/issues](https://github.com/nsleader/icode/issues)
-- **Email:** nsleader@example.com
 
 ### Как сообщить о проблеме
 
