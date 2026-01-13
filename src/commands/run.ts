@@ -100,9 +100,9 @@ async function runOnSimulator(
     // Build command
     let buildCmd: string;
     if (useXcbeautify) {
-        buildCmd = `set -o pipefail && rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -resultBundlePath .bundle build 2>&1 | xcbeautify`;
+        buildCmd = `set -o pipefail && rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -skipPackageUpdates -resultBundlePath .bundle build 2>&1 | xcbeautify`;
     } else {
-        buildCmd = `rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -resultBundlePath .bundle build`;
+        buildCmd = `rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -skipPackageUpdates -resultBundlePath .bundle build`;
     }
 
     // Create shell script content with safely escaped variables
@@ -124,8 +124,8 @@ xcrun simctl boot "$SIM_ID" 2>/dev/null || true
 open -a Simulator
 
 # Get app path
-PRODUCTS_DIR=$(xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -showBuildSettings 2>/dev/null | awk -F' = ' '/BUILT_PRODUCTS_DIR/{print $2; exit}')
-PRODUCT_NAME=$(xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -showBuildSettings 2>/dev/null | awk -F' = ' '/FULL_PRODUCT_NAME/{print $2; exit}')
+PRODUCTS_DIR=$(xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -skipPackageUpdates -showBuildSettings 2>/dev/null | awk -F' = ' '/BUILT_PRODUCTS_DIR/{print $2; exit}')
+PRODUCT_NAME=$(xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -skipPackageUpdates -showBuildSettings 2>/dev/null | awk -F' = ' '/FULL_PRODUCT_NAME/{print $2; exit}')
 APP="$PRODUCTS_DIR/$PRODUCT_NAME"
 echo "[iCode] App: $APP"
 
@@ -178,9 +178,9 @@ async function runOnDevice(
     // Build command
     let buildCmd: string;
     if (useXcbeautify) {
-        buildCmd = `set -o pipefail && rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -resultBundlePath .bundle build 2>&1 | xcbeautify`;
+        buildCmd = `set -o pipefail && rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -skipPackageUpdates -resultBundlePath .bundle build 2>&1 | xcbeautify`;
     } else {
-        buildCmd = `rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -resultBundlePath .bundle build`;
+        buildCmd = `rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -skipPackageUpdates -resultBundlePath .bundle build`;
     }
 
     // Create shell script content with safely escaped variables
@@ -197,8 +197,8 @@ DEVICE_ID=${safeDeviceId}
 ${buildCmd} || exit 1
 
 # Get app path
-PRODUCTS_DIR=$(xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -showBuildSettings 2>/dev/null | awk -F' = ' '/BUILT_PRODUCTS_DIR/{print $2; exit}')
-PRODUCT_NAME=$(xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -showBuildSettings 2>/dev/null | awk -F' = ' '/FULL_PRODUCT_NAME/{print $2; exit}')
+PRODUCTS_DIR=$(xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -skipPackageUpdates -showBuildSettings 2>/dev/null | awk -F' = ' '/BUILT_PRODUCTS_DIR/{print $2; exit}')
+PRODUCT_NAME=$(xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" -skipPackageUpdates -showBuildSettings 2>/dev/null | awk -F' = ' '/FULL_PRODUCT_NAME/{print $2; exit}')
 APP="$PRODUCTS_DIR/$PRODUCT_NAME"
 echo "[iCode] App: $APP"
 

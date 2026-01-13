@@ -130,7 +130,7 @@ export function getBuildCommand(
     const flag = project.isWorkspace ? '-workspace' : '-project';
     const platform = targetType === 'simulator' ? 'iOS Simulator' : 'iOS';
     const destination = `platform=${platform},id=${targetId}`;
-    const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' -resultBundlePath .bundle build`;
+    const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' -skipPackageUpdates -resultBundlePath .bundle build`;
     
     if (useXcbeautify) {
         return `set -o pipefail && ${baseCommand} 2>&1 | xcbeautify`;
@@ -153,7 +153,7 @@ export async function getAppBundlePath(
     const platform = targetType === 'simulator' ? 'iOS Simulator' : 'iOS';
     const destination = `platform=${platform},id=${targetId}`;
     // Include destination to get correct build settings
-    const command = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' -showBuildSettings`;
+    const command = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' -skipPackageUpdates -showBuildSettings`;
     
     try {
         const output = await runCommand(command);
