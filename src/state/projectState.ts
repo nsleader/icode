@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { XcodeProject } from '../utils/xcode';
 import { Simulator, Device, getSimulators, getDevices } from '../utils/simulator';
 
@@ -206,6 +208,53 @@ export class ProjectState {
             configuration: this._configuration,
         };
         this.context.workspaceState.update('icode.state', state);
+        
+        // Also export state to file for MCP server access
+        this.exportStateToFile();
+    }
+
+    /**
+     * Export state to a JSON file for MCP server access
+     */
+    private exportStateToFile(): void {
+        try {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders || workspaceFolders.length === 0) {
+                return; // No workspace open
+            }
+
+            const workspaceRoot = workspaceFolders[0].uri.fsPath;
+            const icodeDir = path.join(workspaceRoot, '.icode');
+            const stateFile = path.join(icodeDir, 'state.json');
+
+            // Create .icode directory if it doesn't exist
+            if (!fs.existsSync(icodeDir)) {
+                fs.mkdirSync(icodeDir, { recursive: true });
+            }
+
+            // Export current state
+            const exportState = {
+                project: this._project ? {
+                    path: this._project.path,
+                    name: this._project.name,
+                    isWorkspace: this._project.isWorkspace
+                } : null,
+                scheme: this._scheme || null,
+                target: this._target ? {
+                    type: this._target.type,
+                    udid: this._target.udid,
+                    name: this._target.name,
+                    runtime: this._target.runtime
+                } : null,
+                configuration: this._configuration,
+                lastUpdated: new Date().toISOString()
+            };
+
+            fs.writeFileSync(stateFile, JSON.stringify(exportState, null, 2), 'utf8');
+        } catch (error) {
+            console.error('Failed to export state to file:', error);
+            // Don't throw - this is a non-critical operation
+        }
     }
 
     dispose(): void {

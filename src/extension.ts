@@ -40,6 +40,13 @@ export function activate(context: vscode.ExtensionContext) {
         });
         context.globalState.update('icode.welcomeShown', true);
     }
+
+    // Check if MCP server should be auto-registered (after welcome message)
+    setTimeout(() => {
+        commands.checkAutoRegister(context).catch(error => {
+            console.error('Failed to check MCP server registration:', error);
+        });
+    }, 2000); // Delay to not interrupt welcome message
 }
 
 /**

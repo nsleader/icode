@@ -2,7 +2,7 @@
   "name": "icode",
   "displayName": "iCode - iOS Development Tools",
   "description": "iOS development tools for VS Code/Cursor: build, run, and manage iOS projects",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "publisher": "nsleader",
   "engines": {
     "vscode": "^1.85.0"
@@ -49,6 +49,10 @@
       {
         "command": "icode.configureDebug",
         "title": "iCode: Configure Debug (LLDB)"
+      },
+      {
+        "command": "icode.registerMcpServer",
+        "title": "iCode: Register MCP Server for AI Integration"
       }
     ],
     "configuration": {

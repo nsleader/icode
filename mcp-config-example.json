@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "icode": {
+      "command": "node",
+      "args": [
+        "/Users/nsleader/.cursor/extensions/nsleader.icode-1.1.0/out/mcp/server.js"
+      ],
+      "disabled": false
+    }
+  }
+}
+
+Note: Replace the version number (1.1.0) with your actual installed version.
+Find it by running: ls ~/.cursor/extensions/ | grep icode

@@ -7,6 +7,7 @@ import * as run from './run';
 import * as configureIndex from './configureIndex';
 import * as resolvePackages from './resolvePackages';
 import * as configureDebug from './configureDebug';
+import * as registerMcpServer from './registerMcpServer';
 
 /**
  * Interface for a command module.
@@ -14,7 +15,7 @@ import * as configureDebug from './configureDebug';
  */
 interface CommandModule {
     COMMAND_ID: string;
-    execute: () => void | Promise<void> | Promise<boolean>;
+    execute: (context?: vscode.ExtensionContext) => void | Promise<void> | Promise<boolean>;
 }
 
 /**
@@ -33,10 +34,18 @@ const commands: CommandModule[] = [
 ];
 
 /**
+ * List of commands that require ExtensionContext
+ */
+const contextCommands: CommandModule[] = [
+    registerMcpServer,
+];
+
+/**
  * Registers all commands and returns their disposables.
  * Call this function from the extension's activate function.
  */
 export function registerAll(context: vscode.ExtensionContext): void {
+    // Register regular commands
     for (const command of commands) {
         const disposable = vscode.commands.registerCommand(
             command.COMMAND_ID,
@@ -44,4 +53,16 @@ export function registerAll(context: vscode.ExtensionContext): void {
         );
         context.subscriptions.push(disposable);
     }
+    
+    // Register commands that need context
+    for (const command of contextCommands) {
+        const disposable = vscode.commands.registerCommand(
+            command.COMMAND_ID,
+            () => command.execute(context)
+        );
+        context.subscriptions.push(disposable);
+    }
 }
+
+// Re-export checkAutoRegister for use in extension.ts
+export { checkAutoRegister } from './registerMcpServer';
