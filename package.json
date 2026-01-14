@@ -45,6 +45,10 @@
       {
         "command": "icode.resolvePackages",
         "title": "iCode: Resolve SPM Dependencies"
+      },
+      {
+        "command": "icode.configureDebug",
+        "title": "iCode: Configure Debug (LLDB)"
       }
     ],
     "configuration": {

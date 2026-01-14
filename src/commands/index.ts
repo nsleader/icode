@@ -6,6 +6,7 @@ import * as build from './build';
 import * as run from './run';
 import * as configureIndex from './configureIndex';
 import * as resolvePackages from './resolvePackages';
+import * as configureDebug from './configureDebug';
 
 /**
  * Interface for a command module.
@@ -28,6 +29,7 @@ const commands: CommandModule[] = [
     run,
     configureIndex,
     resolvePackages,
+    configureDebug,
 ];
 
 /**

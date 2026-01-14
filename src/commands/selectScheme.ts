@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { findXcodeProjects, getSchemes, XcodeProject } from '../utils/xcode';
 import { ProjectState } from '../state/projectState';
+import { updateLaunchJsonForScheme } from './configureDebug';
 
 export const COMMAND_ID = 'icode.selectScheme';
 
@@ -91,7 +92,13 @@ export async function execute(): Promise<void> {
     state.setProject(selectedProject);
     state.setScheme(selectedScheme.schemeName);
 
-    vscode.window.showInformationMessage(`Selected: ${selectedProject.name} → ${selectedScheme.schemeName}`);
+    // Update launch.json if it exists (for debugging)
+    const launchUpdated = updateLaunchJsonForScheme(selectedScheme.schemeName);
+
+    vscode.window.showInformationMessage(
+        `Selected: ${selectedProject.name} → ${selectedScheme.schemeName}` +
+        (launchUpdated ? ' (debug config updated)' : '')
+    );
 
     // Chain: prompt to select simulator/device
     await vscode.commands.executeCommand('icode.selectSimulator');
