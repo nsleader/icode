@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { XcodeProject } from '../utils/xcode';
-import { Simulator, Device } from '../utils/simulator';
+import { Simulator, Device, getSimulators, getDevices } from '../utils/simulator';
 
 /**
  * Target can be either a simulator or a physical device.
@@ -25,6 +25,8 @@ interface StoredState {
     schemeName?: string;
     targetUdid?: string;
     targetType?: 'simulator' | 'device';
+    targetName?: string;
+    targetRuntime?: string;
     configuration?: BuildConfiguration;
 }
 
@@ -131,6 +133,43 @@ export class ProjectState {
         });
     }
 
+    /**
+     * Restores target name from saved UDID by loading simulators/devices.
+     * Should be called after extension activation to update "Unknown" names.
+     */
+    async restoreTargetName(): Promise<void> {
+        if (!this._target || this._target.name !== 'Unknown') {
+            return; // No target or already has a name
+        }
+
+        try {
+            if (this._target.type === 'simulator') {
+                const simulators = await getSimulators();
+                const simulator = simulators.find(s => s.udid === this._target!.udid);
+                if (simulator) {
+                    this.setTarget({
+                        type: 'simulator',
+                        udid: simulator.udid,
+                        name: simulator.name,
+                        runtime: simulator.runtime,
+                    });
+                }
+            } else if (this._target.type === 'device') {
+                const devices = await getDevices();
+                const device = devices.find(d => d.udid === this._target!.udid);
+                if (device) {
+                    this.setTarget({
+                        type: 'device',
+                        udid: device.udid,
+                        name: device.name,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Failed to restore target name:', error);
+        }
+    }
+
     // Persistence
     private loadState(): void {
         const stored = this.context.workspaceState.get<StoredState>('icode.state');
@@ -148,7 +187,8 @@ export class ProjectState {
                 this._target = {
                     type: stored.targetType,
                     udid: stored.targetUdid,
-                    name: 'Unknown', // Will be updated when simulators are loaded
+                    name: stored.targetName || 'Unknown', // Will be updated when simulators are loaded
+                    runtime: stored.targetRuntime,
                 };
             }
             this._configuration = stored.configuration || 'Debug';
@@ -161,6 +201,8 @@ export class ProjectState {
             schemeName: this._scheme,
             targetUdid: this._target?.udid,
             targetType: this._target?.type,
+            targetName: this._target?.name,
+            targetRuntime: this._target?.runtime,
             configuration: this._configuration,
         };
         this.context.workspaceState.update('icode.state', state);

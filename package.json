@@ -331,5 +331,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nsleader/icode.git"
+  },
   "type": "commonjs"
 }

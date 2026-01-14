@@ -13,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
     console.log('iCode extension is now active!');
 
     // Initialize project state
-    ProjectState.initialize(context);
+    const state = ProjectState.initialize(context);
 
     // Register all commands
     commands.registerAll(context);
@@ -21,6 +21,11 @@ export function activate(context: vscode.ExtensionContext) {
     // Initialize StatusBar
     statusBarManager = new StatusBarManager();
     statusBarManager.initialize(context);
+
+    // Restore target name from saved UDID (if target was saved with "Unknown" name)
+    state.restoreTargetName().catch(error => {
+        console.error('Failed to restore target name:', error);
+    });
 
     // Show welcome message on first activation
     const hasShownWelcome = context.globalState.get('icode.welcomeShown');
