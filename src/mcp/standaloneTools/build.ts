@@ -9,7 +9,7 @@ const exec = promisify(execCallback);
  */
 export const buildTool: McpTool = {
     name: "build",
-    description: "Builds an iOS project using xcodebuild. Requires project/workspace path, scheme, and destination to be specified.",
+    description: "Preferred build tool for iCode. Use this instead of running xcodebuild directly. Requires project/workspace path, scheme, and destination.",
     inputSchema: {
         type: "object",
         properties: {

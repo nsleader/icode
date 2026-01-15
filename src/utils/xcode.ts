@@ -125,6 +125,16 @@ export interface BuildOptions {
     disableAutoPackageResolution?: boolean;
 }
 
+export interface RunScriptOptions {
+    project: XcodeProject;
+    scheme: string;
+    targetId: string;
+    targetType: 'simulator' | 'device';
+    configuration?: string;
+    useXcbeautify?: boolean;
+    options?: BuildOptions;
+}
+
 /**
  * Get build optimization flags from VS Code settings.
  */
@@ -135,6 +145,26 @@ export function getBuildOptions(): BuildOptions {
         parallelizeTargets: config.get<boolean>('parallelizeTargets', true),
         disableAutoPackageResolution: config.get<boolean>('disableAutoPackageResolution', false),
     };
+}
+
+/**
+ * Build optimization flags string from options or settings.
+ */
+export function getBuildFlags(options?: BuildOptions): string {
+    const opts = options ?? getBuildOptions();
+    const flags: string[] = ['-skipPackageUpdates'];
+
+    if (opts.skipMacroValidation) {
+        flags.push('-skipMacroValidation');
+    }
+    if (opts.parallelizeTargets) {
+        flags.push('-parallelizeTargets');
+    }
+    if (opts.disableAutoPackageResolution) {
+        flags.push('-disableAutomaticPackageResolution');
+    }
+
+    return flags.join(' ');
 }
 
 /**
@@ -155,29 +185,120 @@ export function getBuildCommand(
     const platform = targetType === 'simulator' ? 'iOS Simulator' : 'iOS';
     const destination = `platform=${platform},id=${targetId}`;
     
-    // Get options from settings if not provided
-    const opts = options ?? getBuildOptions();
-    
-    // Build optimization flags
-    const optFlags: string[] = ['-skipPackageUpdates'];
-    
-    if (opts.skipMacroValidation) {
-        optFlags.push('-skipMacroValidation');
-    }
-    if (opts.parallelizeTargets) {
-        optFlags.push('-parallelizeTargets');
-    }
-    if (opts.disableAutoPackageResolution) {
-        optFlags.push('-disableAutomaticPackageResolution');
-    }
-    
-    const optFlagsStr = optFlags.join(' ');
+    const optFlagsStr = getBuildFlags(options);
     const baseCommand = `xcodebuild ${flag} "${project.path}" -scheme "${scheme}" -configuration ${configuration} -destination '${destination}' ${optFlagsStr} -resultBundlePath .bundle build`;
     
     if (useXcbeautify) {
         return `set -o pipefail && ${baseCommand} 2>&1 | xcbeautify`;
     }
     return baseCommand;
+}
+
+/**
+ * Escape a string for safe inclusion in a bash single-quoted string.
+ */
+function shellEscape(value: string): string {
+    return "'" + value.replace(/'/g, "'\\''") + "'";
+}
+
+/**
+ * Build a run script that uses the same build flags as getBuildCommand.
+ */
+export function getRunScriptContent({
+    project,
+    scheme,
+    targetId,
+    targetType,
+    configuration = 'Debug',
+    useXcbeautify = false,
+    options,
+}: RunScriptOptions): string {
+    const flag = project.isWorkspace ? '-workspace' : '-project';
+    const platform = targetType === 'simulator' ? 'iOS Simulator' : 'iOS';
+    const destination = `platform=${platform},id=${targetId}`;
+    const optFlagsStr = getBuildFlags(options);
+
+    const safeProject = shellEscape(project.path);
+    const safeScheme = shellEscape(scheme);
+    const safeConfig = shellEscape(configuration);
+    const safeDest = shellEscape(destination);
+    const safeTargetId = shellEscape(targetId);
+
+    const baseBuild = `rm -rf .bundle && xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" ${optFlagsStr} -resultBundlePath .bundle build`;
+    const buildCmd = useXcbeautify
+        ? `set -o pipefail && ${baseBuild} 2>&1 | xcbeautify`
+        : baseBuild;
+
+    const buildSettingsCmd = `xcodebuild ${flag} "$PROJECT" -scheme "$SCHEME" -configuration "$CONFIG" -destination "$DEST" ${optFlagsStr} -showBuildSettings 2>/dev/null`;
+
+    if (targetType === 'simulator') {
+        return `#!/bin/bash
+set -e
+
+PROJECT=${safeProject}
+SCHEME=${safeScheme}
+CONFIG=${safeConfig}
+DEST=${safeDest}
+SIM_ID=${safeTargetId}
+
+# Build
+${buildCmd} || exit 1
+
+# Boot simulator
+echo "[iCode] Starting simulator..."
+xcrun simctl boot "$SIM_ID" 2>/dev/null || true
+open -a Simulator
+
+# Get app path (single xcodebuild call for both values)
+echo "[iCode] Getting build settings..."
+BUILD_SETTINGS=$(${buildSettingsCmd})
+PRODUCTS_DIR=$(echo "$BUILD_SETTINGS" | awk -F' = ' '/BUILT_PRODUCTS_DIR/{print $2; exit}')
+PRODUCT_NAME=$(echo "$BUILD_SETTINGS" | awk -F' = ' '/FULL_PRODUCT_NAME/{print $2; exit}')
+APP="$PRODUCTS_DIR/$PRODUCT_NAME"
+echo "[iCode] App: $APP"
+
+# Get bundle ID
+BID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
+echo "[iCode] Bundle ID: $BID"
+
+# Install and launch
+xcrun simctl install "$SIM_ID" "$APP"
+echo "[iCode] Launching (close terminal to stop)..."
+xcrun simctl launch --console-pty "$SIM_ID" "$BID"
+`;
+    }
+
+    return `#!/bin/bash
+set -e
+
+PROJECT=${safeProject}
+SCHEME=${safeScheme}
+CONFIG=${safeConfig}
+DEST=${safeDest}
+DEVICE_ID=${safeTargetId}
+
+# Build
+${buildCmd} || exit 1
+
+# Get app path (single xcodebuild call for both values)
+echo "[iCode] Getting build settings..."
+BUILD_SETTINGS=$(${buildSettingsCmd})
+PRODUCTS_DIR=$(echo "$BUILD_SETTINGS" | awk -F' = ' '/BUILT_PRODUCTS_DIR/{print $2; exit}')
+PRODUCT_NAME=$(echo "$BUILD_SETTINGS" | awk -F' = ' '/FULL_PRODUCT_NAME/{print $2; exit}')
+APP="$PRODUCTS_DIR/$PRODUCT_NAME"
+echo "[iCode] App: $APP"
+
+# Get bundle ID
+BID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
+echo "[iCode] Bundle ID: $BID"
+
+# Install and launch using devicectl (Xcode 15+)
+echo "[iCode] Installing on device..."
+xcrun devicectl device install app --device "$DEVICE_ID" "$APP"
+
+echo "[iCode] Launching (close terminal to stop)..."
+xcrun devicectl device process launch --device "$DEVICE_ID" --console "$BID"
+`;
 }
 
 /**

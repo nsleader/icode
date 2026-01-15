@@ -5,7 +5,7 @@ import { McpTool, ToolHandler } from '../types';
  */
 export const configureDebugTool: McpTool = {
     name: "configure_debug",
-    description: "Provides instructions for configuring debug settings. Requires VS Code extension to be active.",
+    description: "Use this tool to guide the user to configure debugging via the VS Code extension.",
     inputSchema: {
         type: "object",
         properties: {},
@@ -38,7 +38,7 @@ export const handleConfigureDebug: ToolHandler = async () => {
  */
 export const configureIndexTool: McpTool = {
     name: "configure_index",
-    description: "Provides instructions for configuring Swift indexing. Requires VS Code extension to be active.",
+    description: "Use this tool to guide the user to configure Swift indexing via the VS Code extension.",
     inputSchema: {
         type: "object",
         properties: {},
@@ -72,7 +72,7 @@ export const handleConfigureIndex: ToolHandler = async () => {
  */
 export const resolvePackagesTool: McpTool = {
     name: "resolve_packages",
-    description: "Provides instructions for resolving SPM dependencies. Can also be done via xcodebuild directly.",
+    description: "Use this tool to guide resolving SPM dependencies (via extension or suggested xcodebuild command).",
     inputSchema: {
         type: "object",
         properties: {

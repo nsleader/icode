@@ -46,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
         commands.checkAutoRegister(context).catch(error => {
             console.error('Failed to check MCP server registration:', error);
         });
+        promptForMissingState(context, state);
     }, 2000); // Delay to not interrupt welcome message
 }
 
@@ -56,4 +57,26 @@ export function deactivate() {
     if (statusBarManager) {
         statusBarManager.dispose();
     }
+}
+
+function promptForMissingState(context: vscode.ExtensionContext, state: ProjectState): void {
+    if (context.workspaceState.get('icode.statePromptShown')) {
+        return;
+    }
+
+    if (state.project && state.scheme && state.target) {
+        return;
+    }
+
+    context.workspaceState.update('icode.statePromptShown', true);
+
+    vscode.window.showInformationMessage(
+        'Select scheme, target, and configuration to enable build/run.',
+        'Configure Now',
+        'Later'
+    ).then(action => {
+        if (action === 'Configure Now') {
+            vscode.commands.executeCommand('icode.selectScheme');
+        }
+    });
 }

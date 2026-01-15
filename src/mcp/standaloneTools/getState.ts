@@ -8,7 +8,7 @@ import * as os from 'os';
  */
 export const getStateTool: McpTool = {
     name: "get_state",
-    description: "Gets the current project state (selected scheme, simulator, configuration) from the iCode extension. Returns the currently configured project settings if the extension has them saved.",
+    description: "Use this tool to check if scheme/target/configuration are already selected and saved by the extension.",
     inputSchema: {
         type: "object",
         properties: {

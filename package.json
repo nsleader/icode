@@ -49,10 +49,6 @@
       {
         "command": "icode.configureDebug",
         "title": "iCode: Configure Debug (LLDB)"
-      },
-      {
-        "command": "icode.registerMcpServer",
-        "title": "iCode: Register MCP Server for AI Integration"
       }
     ],
     "configuration": {

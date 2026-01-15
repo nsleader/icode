@@ -11,7 +11,7 @@ const exec = promisify(execCallback);
  */
 export const listProjectsTool: McpTool = {
     name: "list_projects",
-    description: "Lists all Xcode projects (.xcodeproj) and workspaces (.xcworkspace) found in the current workspace",
+    description: "Use this first to discover Xcode projects/workspaces before calling build.",
     inputSchema: {
         type: "object",
         properties: {
