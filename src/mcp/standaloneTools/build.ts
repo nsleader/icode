@@ -61,7 +61,7 @@ export const handleBuild: ToolHandler = async (params) => {
         }
         
         // Build command
-        const command = `xcodebuild ${flag} "${project}" -scheme "${scheme}" -configuration ${configuration} -destination '${dest}' -skipPackageUpdates build`;
+        const command = `xcodebuild ${flag} "${project}" -scheme "${scheme}" -configuration "${configuration}" -destination '${dest}' -skipPackageUpdates build`;
         
         console.error(`[MCP] Executing build command: ${command}`);
         
