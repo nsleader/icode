@@ -91,23 +91,46 @@ export async function getSchemes(project: XcodeProject): Promise<XcodeScheme[]> 
  * Returns configurations like 'Debug', 'Release', or custom ones.
  */
 export async function getConfigurations(project: XcodeProject): Promise<string[]> {
-    const flag = project.isWorkspace ? '-workspace' : '-project';
-    const command = `xcodebuild -list ${flag} "${project.path}" -json`;
-    
     try {
-        const output = await runCommand(command);
-        const data = JSON.parse(output);
-        
-        // Configurations are in project.configurations (not in workspace)
-        // For workspaces, we need to look at the underlying project
-        const configurations = data.project?.configurations || data.workspace?.configurations || [];
-        
-        // If no configurations found, return defaults
-        if (configurations.length === 0) {
-            return ['Debug', 'Release'];
+        if (project.isWorkspace) {
+            // For workspaces, we need to find the underlying project file
+            // because configurations are stored at the project level, not workspace level
+            const workspaceDir = project.path;
+            const projectFiles = await vscode.workspace.findFiles(
+                new vscode.RelativePattern(path.dirname(workspaceDir), '*.xcodeproj/project.pbxproj'),
+                '**/Pods/**'
+            );
+            
+            if (projectFiles.length === 0) {
+                console.warn('No .xcodeproj found for workspace, using defaults');
+                return ['Debug', 'Release'];
+            }
+            
+            // Use the first found project (usually there's one main project)
+            const projectPath = path.dirname(projectFiles[0].fsPath);
+            const command = `xcodebuild -list -project "${projectPath}" -json`;
+            const output = await runCommand(command);
+            const data = JSON.parse(output);
+            const configurations = data.project?.configurations || [];
+            
+            if (configurations.length === 0) {
+                return ['Debug', 'Release'];
+            }
+            
+            return configurations;
+        } else {
+            // For regular projects, directly query the project
+            const command = `xcodebuild -list -project "${project.path}" -json`;
+            const output = await runCommand(command);
+            const data = JSON.parse(output);
+            const configurations = data.project?.configurations || [];
+            
+            if (configurations.length === 0) {
+                return ['Debug', 'Release'];
+            }
+            
+            return configurations;
         }
-        
-        return configurations;
     } catch (error) {
         console.error('Failed to get configurations:', error);
         // Return defaults on error

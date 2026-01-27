@@ -2,7 +2,7 @@
   "name": "icode",
   "displayName": "iCode - iOS Development Tools",
   "description": "iOS development tools for VS Code/Cursor: build, run, and manage iOS projects",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publisher": "nsleader",
   "engines": {
     "vscode": "^1.85.0"
